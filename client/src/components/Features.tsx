@@ -10,8 +10,8 @@ export default function Features() {
             <div className="max-w-6xl mx-auto px-4">
 
                 <Title
-                    title="Services"
-                    heading="Everything your brand needs to grow"
+                    title="Features"
+                    heading="Built for modern brands"
                     description="From strategy to execution, we help businesses build strong digital products and meaningful customer experiences."
                 />
 

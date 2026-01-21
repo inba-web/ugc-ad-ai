@@ -1,8 +1,9 @@
-import { Link, MenuIcon, XIcon } from 'lucide-react';
+import { MenuIcon, XIcon } from 'lucide-react';
 import { PrimaryButton } from './Buttons';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { assets } from '../assets/assets';
+import { Link } from 'react-router-dom';
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
@@ -18,7 +19,7 @@ export default function Navbar() {
         <motion.nav className='fixed top-5 left-0 right-0 z-50 px-4'
             initial={{ y: -100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            viewport={{ once: true }} 
+            viewport={{ once: true }}
             transition={{ type: "spring", stiffness: 250, damping: 70, mass: 1 }} 
         >
             <div className='max-w-6xl mx-auto flex items-center justify-between bg-black/50 backdrop-blur-md border border-white/4 rounded-2xl p-3'>
@@ -28,9 +29,9 @@ export default function Navbar() {
 
                 <div className='hidden md:flex items-center gap-8 text-sm font-medium text-gray-300'>
                     {navLinks.map((link) => (   
-                        <a href={link.href} key={link.name} className="hover:text-white transition">
+                        <Link onClick={() => scrollTo(0,0)} to={link.href} key={link.name} className="hover:text-white transition">
                             {link.name}
-                        </a>
+                        </Link>
                     ))}
                 </div>
 
