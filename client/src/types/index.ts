@@ -21,6 +21,8 @@ export interface Project {
     productName: string,
     productDescription?: string,
     userPrompt?: string,
+    aspectRatio?: string,
+    generatedVideo?: string,
     targetLength?: number,
     generatedImage?: string,
     video?: string,
