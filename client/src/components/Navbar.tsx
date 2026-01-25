@@ -78,7 +78,7 @@ export default function Navbar() {
               onClick={() => navigate("/plans")}
               className="border-none text-gray-300 sm:py-1.5"
             >
-              Credits:
+              Credits: 
             </GhostButton>
             <UserButton>
               <UserButton.MenuItems>
