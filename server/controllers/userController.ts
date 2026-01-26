@@ -51,7 +51,9 @@ export const getProjectById = async (req: Request, res: Response) => {
     if (!userId) return;
 
     const { projectId } = req.params;
-    const normalizedProjectId = Array.isArray(projectId) ? projectId[0] : projectId;
+    const normalizedProjectId = Array.isArray(projectId)
+      ? projectId[0]
+      : projectId;
 
     const project = await prisma.project.findFirst({
       where: {
@@ -77,7 +79,9 @@ export const toggleProjectPublic = async (req: Request, res: Response) => {
     if (!userId) return;
 
     const { projectId } = req.params;
-    const normalizedProjectId = Array.isArray(projectId) ? projectId[0] : projectId;
+    const normalizedProjectId = Array.isArray(projectId)
+      ? projectId[0]
+      : projectId;
 
     const project = await prisma.project.findFirst({
       where: {
@@ -91,9 +95,7 @@ export const toggleProjectPublic = async (req: Request, res: Response) => {
     }
 
     if (!project.generatedImage && !project.generatedVideo) {
-      return res
-        .status(400)
-        .json({ message: "Image or video not generated" });
+      return res.status(400).json({ message: "Image or video not generated" });
     }
 
     const updatedProject = await prisma.project.update({
