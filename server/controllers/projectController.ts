@@ -5,6 +5,7 @@ import {v2 as cloudinary} from "cloudinary";
 import { GenerateContentConfig,HarmBlockThreshold, HarmCategory } from "@google/genai";
 import fs from "fs";
 import path from "path";
+import axios from "axios";
 import ai from "../configs/ai.js";
 
 const loadImage = (path: string, mimeType: string) => {
@@ -194,12 +195,111 @@ export const createVideo = async (req: Request, res: Response) => {
         data: {credits: {decrement: 10}}
     }).then(() => {isCreditDeducted = true})
 
+    try {
+        const project = await prisma.project.findUnique({
+            where: {id: projectId},
+            include: {user: true}
+        })
 
+        if(!project || project.isGenerating){
+            return res.status(404).json({message: "Generation in progress"})
+        }
+
+        if(project.generatedVideo){
+            return res.status(404).json({message: "video already generated"})
+        }
+
+        await prisma.project.update({
+            where: {id : projectId},
+            data: {isGenerating: true}
+        })
+
+        const prompt = `make the person showcase the product which is ${project.productName} ${project.productDescription && `and Product Description: ${project.productDescription}`}`;
+
+        const model = 'veo-3.1-generate-preview';
+
+        if(!project.generatedImage){
+            throw new Error("Generated image not found");
+        }
+
+        const image = await axios.get(project.generatedImage, {
+            responseType: 'arraybuffer'
+        })
+
+        const imageBytes : any = Buffer.from(image.data)
+
+        let operation: any = await ai.models.generateVideos({
+            model,
+            prompt,
+            image: {
+                imageBytes: imageBytes.toString('base64'),
+                mimeType: 'image/png',
+            },
+            config: {
+                aspectRatio: project.aspectRatio || '9:16',
+                numberOfVideos: 1,
+                resolution: '720p',
+            }
+        })
+
+        while(!operation.done){
+            console.log('waiting for video generation to complete');
+            await new Promise((resolve) => setTimeout(resolve, 10000));
+            operation = await ai.operations.getVideosOperation({
+                operation: operation,
+            })
+        }
+
+        const filename = `${userId}-${Date.now()}.mp4`;
+        const filePath = path.join('videos', filename);
+
+        // Create the images directory if it doesn't exist
+        fs.mkdirSync('videos', {recursive: true});
     
 
-    try {
-        
+        if(!operation.response.generatedVideos){
+            throw new Error(operation.response.raiMediaFilteredReasons[0])
+        }
+
+        // Download the video.
+        await ai.files.download({
+            file: operation.response.generatedVideos[0].video,
+            downloadPath: filePath,
+        })
+
+        const uploadResult = await cloudinary.uploader.upload(filePath, {
+            resource_type: 'video'
+        })
+
+        await prisma.project.update({
+            where: {id: project.id},
+            data: {
+                generatedVideo: uploadResult.secure_url,
+                isGenerating: false
+            }
+        })
+
+        // remove video file from disk after upload
+        fs.unlinkSync(filePath);
+
+        res.json({message: 'video generation completed', videoUrl: uploadResult.secure_url});
+
     } catch (error:any) {
+
+        // update project status and error message
+        await prisma.project.update({
+            where: {id: projectId, userId},
+            data: {isGenerating: false, error: error.message}
+        })
+
+        if(isCreditDeducted){
+            // add credits back
+            await prisma.user.update({
+                where: {id: userId},
+                data: {credits: {increment: 10}}
+            })
+        }
+
         Sentry.captureException(error);
         res.status(500).json({message: error.message || error.code })
     }
@@ -207,7 +307,11 @@ export const createVideo = async (req: Request, res: Response) => {
 
 export const getAllPublishedProjects = async (req: Request, res: Response) => {
     try {
-        
+        const projects = await prisma.project.findMany({
+            where: {isPublished: true},
+        })
+        res.json({projects});
+
     } catch (error:any) {
         Sentry.captureException(error);
         res.status(500).json({message: error.message || error.code })
@@ -216,6 +320,26 @@ export const getAllPublishedProjects = async (req: Request, res: Response) => {
 
 export const deleteProject = async (req: Request, res: Response) => {
     try {
+        const {userId} = req.auth();
+        let {projectId} = req.params;
+
+        if (Array.isArray(projectId)) {
+            projectId = projectId[0];
+        }
+
+        const project = await prisma.project.findUnique({
+            where: {id: projectId, userId},
+        })
+
+        if(!project){
+            return res.status(404).json({message: "project not found"})
+        }
+
+        await prisma.project.delete({
+            where: {id: projectId}
+        })
+
+        res.json({message: 'project deleted successfully'});
         
     } catch (error:any) {
         Sentry.captureException(error);
