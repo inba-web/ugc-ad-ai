@@ -15,13 +15,12 @@ export const getUserCredits = async (req: Request, res: Response) => {
   try {
     const userId = getAuthenticatedUserId(req, res);
     if (!userId) return;
-
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: { credits: true },
     });
 
-    return res.json({ credits: user?.credits ?? 0 });
+    return res.json({ credits: user?.credits || 0 });
   } catch (error: any) {
     Sentry.captureException(error);
     return res.status(500).json({ message: "Internal server error" });

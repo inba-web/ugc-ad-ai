@@ -12,7 +12,7 @@ import { motion } from "framer-motion";
 import { assets } from "../assets/assets";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useClerk, useUser, UserButton, useAuth } from "@clerk/clerk-react";
-import api from "../config/axios";
+import api from "../config/axios.ts";
 import { toast } from "react-hot-toast";
 
 export default function Navbar() {
@@ -43,7 +43,7 @@ export default function Navbar() {
       toast.error(error.response?.data?.message || error.message);
       console.log(error);
     }
-  }
+  } 
 
   useEffect(() => {
     if (user) {

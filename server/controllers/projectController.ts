@@ -85,8 +85,8 @@ export const createProject = async (req: Request, res: Response) => {
 
     tempProjectId = project.id;
 
-    const model = "gemini-3-pro-flash-image-preview";
-    // const model = "gemini-3-flash-preview"
+    // const model = "gemini-3-pro-flash-image-preview";
+    const model = "gemini-3-flash-preview"
 
     const generationConfig: GenerateContentConfig = {
       maxOutputTokens: 32768,
