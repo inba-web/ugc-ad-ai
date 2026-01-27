@@ -1,23 +1,34 @@
 import { useEffect, useState } from "react"
 import type { Project } from "../types";
-import { dummyGenerations } from "../assets/assets";
 import { Loader2Icon } from "lucide-react";
 import ProjectCard from "../components/ProjectCard";
+import { useAuth } from "@clerk/clerk-react";
+import api from "../config/axios";
+import toast from "react-hot-toast";
 
 const Community = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const { getToken } = useAuth();
 
   const fetchProjects = async () => {
-    setTimeout(() => {
-      setProjects(dummyGenerations);
+    try {
+      const token = await getToken();
+      const { data } = await api.get('/api/project/publish', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setProjects(data.projects);
+    } catch (error: any) {
+      console.error(error);
+      toast.error("Failed to fetch community projects");
+    } finally {
       setLoading(false);
-    },3000)
+    }
   }
 
   useEffect(() => {
     fetchProjects();
-  },[])
+  }, [])
 
   return loading ? (
     <div className="flex items-center justify-center min-h-screen">

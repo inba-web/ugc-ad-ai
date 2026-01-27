@@ -3,6 +3,10 @@ import Title from "../components/Title";
 import UploadZone from "../components/UploadZone";
 import React, { useState } from "react";
 import { PrimaryButton } from "../components/Buttons";
+import { useNavigate } from "react-router-dom";
+import api from "../config/axios";
+import toast from "react-hot-toast";
+import { useAuth } from "@clerk/clerk-react";
 
 const Generate = () => {
   const [name, setName] = useState("");
@@ -13,6 +17,8 @@ const Generate = () => {
   const [modelImage, setModelImage] = useState<File | null>(null);
   const [userPrompt, setUserPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const { getToken } = useAuth();
+  const navigate = useNavigate();
 
   const handleFileChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -29,6 +35,38 @@ const Generate = () => {
 
   const handleGenerate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!productImage || !modelImage) {
+      toast.error("Please upload both product and model images");
+      return;
+    }
+
+    try {
+      setIsGenerating(true);
+      const token = await getToken();
+      const formData = new FormData();
+      formData.append("name", name);
+      formData.append("productName", productName);
+      formData.append("productDescription", productDescription);
+      formData.append("aspectRatio", aspectRatio);
+      formData.append("userPrompt", userPrompt);
+      formData.append("images", modelImage); // First image: person/model
+      formData.append("images", productImage); // Second image: product
+
+      const { data } = await api.post("/api/project/create", formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      toast.success("Project created! Generating image...");
+      navigate(`/result/${data.projectId}`);
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.response?.data?.message || "Failed to create project");
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
@@ -142,16 +180,16 @@ const Generate = () => {
 
         <div className="flex justify-center mt-10">
           <PrimaryButton disabled={isGenerating} className="px-6 py-3 disabled:opacity-70 disabled:cursor-not-allowed">
-            {isGenerating ? 
-            (
-            <>
-              <Loader2Icon className="size-5 animate-spin"/> Generating...
-            </>
-          ) : (
-            <>
-              <Wand2Icon className="size-5"/> Generate
-            </>
-          )}
+            {isGenerating ?
+              (
+                <>
+                  <Loader2Icon className="size-5 animate-spin" /> Generating...
+                </>
+              ) : (
+                <>
+                  <Wand2Icon className="size-5" /> Generate
+                </>
+              )}
           </PrimaryButton>
         </div>
       </form>

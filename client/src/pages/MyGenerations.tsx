@@ -1,24 +1,36 @@
 import { useEffect, useState } from "react";
 import type { Project } from "../types";
-import { dummyGenerations } from "../assets/assets";
 import { Loader2Icon } from "lucide-react";
 import ProjectCard from "../components/ProjectCard";
 import { PrimaryButton } from "../components/Buttons";
+import { Link } from "react-router-dom";
+import { useAuth } from "@clerk/clerk-react";
+import api from "../config/axios";
+import toast from "react-hot-toast";
 
 const MyGenerations = () => {
   const [generations, setGenerations] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
-  
-    const fetchMyGenerations = async () => {
-      setTimeout(() => {
-        setGenerations(dummyGenerations);
-        setLoading(false);
-      },3000)
+  const { getToken } = useAuth();
+
+  const fetchMyGenerations = async () => {
+    try {
+      const token = await getToken();
+      const { data } = await api.get('/api/users/projects', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setGenerations(data.projects);
+    } catch (error: any) {
+      console.error(error);
+      toast.error("Failed to fetch generations");
+    } finally {
+      setLoading(false);
     }
-  
-    useEffect(() => {
-      fetchMyGenerations();
-    },[]) 
+  }
+
+  useEffect(() => {
+    fetchMyGenerations();
+  }, [])
 
   return loading ? (
     <div className="flex items-center justify-center min-h-screen">
@@ -36,7 +48,7 @@ const MyGenerations = () => {
         <div className="columns-1 sm:columns-2 lg:columns-3 gap-4">
           {generations.map((gen) => (
             <div>
-              <ProjectCard key={gen.id} gen={gen}/>
+              <ProjectCard key={gen.id} gen={gen} />
             </div>
           ))}
         </div>

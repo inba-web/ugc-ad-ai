@@ -22,7 +22,7 @@ const loadImage = (path: string, mimeType: string) => {
 };
 
 export const createProject = async (req: Request, res: Response) => {
-  let tempProjectId: string;
+  let tempProjectId: string | undefined;
   const { userId } = req.auth();
   let isCreditDeducted = false;
 
@@ -173,7 +173,7 @@ export const createProject = async (req: Request, res: Response) => {
 
     res.json({ projectId: project.id });
   } catch (error: any) {
-    if (tempProjectId!) {
+    if (tempProjectId) {
       // update project status and error message
       await prisma.project.update({
         where: { id: tempProjectId },
@@ -360,7 +360,7 @@ export const deleteProject = async (req: Request, res: Response) => {
     });
 
     res.json({ message: "project deleted successfully" });
-    
+
   } catch (error: any) {
     Sentry.captureException(error);
     res.status(500).json({ message: error.message || error.code });
