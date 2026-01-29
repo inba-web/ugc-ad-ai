@@ -27,9 +27,9 @@ export default function Navbar() {
 
   const navLinks = [
     { name: "Home", href: "/" },
-    { name: "Features", href: "/#features" },
-    { name: "Pricing", href: "/#pricing" },
-    { name: "FAQ", href: "/#faq" },
+    {name: "Generations", href: "/my-generations" },
+    { name: "Plans", href: "/plans" },
+    { name: "Community", href: "/community" },
   ];
 
   const getCredits = async () => {
