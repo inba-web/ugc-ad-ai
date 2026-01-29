@@ -1,0 +1,10 @@
+{
+  "ignore": [
+    "node_modules",
+    "dist",
+    "generated",
+    "videos",
+    "*.log"
+  ],
+  "ext": "ts,json,js"
+}

@@ -24,7 +24,7 @@ export const getUserCredits = async (req: Request, res: Response) => {
     return res.json({ credits: user?.credits ?? 0 });
   } catch (error: any) {
     Sentry.captureException(error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: error.message });
   }
 };
 

@@ -15,6 +15,8 @@
   "dependencies": {
     "@clerk/express": "^1.7.65",
     "@google/genai": "^1.38.0",
+    "@neondatabase/serverless": "^1.0.2",
+    "@prisma/adapter-neon": "^7.3.0",
     "@prisma/adapter-pg": "^7.3.0",
     "@prisma/client": "^7.3.0",
     "@sentry/node": "^10.36.0",
@@ -24,7 +26,8 @@
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "multer": "^2.0.2",
-    "pg": "^8.17.2"
+    "pg": "^8.17.2",
+    "ws": "^8.19.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
@@ -32,6 +35,7 @@
     "@types/multer": "^2.0.0",
     "@types/node": "^25.0.10",
     "@types/pg": "^8.16.0",
+    "@types/ws": "^8.18.1",
     "nodemon": "^3.1.11",
     "prisma": "^7.3.0",
     "ts-node": "^10.9.2",

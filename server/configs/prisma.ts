@@ -1,10 +1,18 @@
 import "dotenv/config";
-import { PrismaPg } from '@prisma/adapter-pg'
+import { PrismaNeon } from '@prisma/adapter-neon'
+import { Pool, neonConfig } from '@neondatabase/serverless'
 import { PrismaClient } from '../generated/prisma/client.js'
+import ws from 'ws'
 
-const connectionString = `${process.env.DATABASE_URL}`
+if (!process.env.DATABASE_URL) {
+    throw new Error("DATABASE_URL environment variable is not set");
+}
 
-const adapter = new PrismaPg({ connectionString })
+// Configure Neon for serverless environment
+neonConfig.webSocketConstructor = ws;
+const connectionString = process.env.DATABASE_URL;
+
+const adapter = new PrismaNeon({ connectionString })
 const prisma = new PrismaClient({ adapter })
 
 export { prisma }
