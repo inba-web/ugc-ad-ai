@@ -1,4 +1,9 @@
-import { Loader2Icon, RectangleHorizontal, RectangleVertical, Wand2Icon } from "lucide-react";
+import {
+  Loader2Icon,
+  RectangleHorizontal,
+  RectangleVertical,
+  Wand2Icon,
+} from "lucide-react";
 import Title from "../components/Title";
 import UploadZone from "../components/UploadZone";
 import React, { useState } from "react";
@@ -6,9 +11,13 @@ import { PrimaryButton } from "../components/Buttons";
 import { useNavigate } from "react-router-dom";
 import api from "../config/axios";
 import toast from "react-hot-toast";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth, useUser } from "@clerk/clerk-react";
 
 const Generate = () => {
+  const { user } = useUser();
+  const { getToken } = useAuth();
+  const navigate = useNavigate();
+
   const [name, setName] = useState("");
   const [productName, setProductName] = useState("");
   const [productDescription, setProductDescription] = useState("");
@@ -17,8 +26,6 @@ const Generate = () => {
   const [modelImage, setModelImage] = useState<File | null>(null);
   const [userPrompt, setUserPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
-  const { getToken } = useAuth();
-  const navigate = useNavigate();
 
   const handleFileChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -35,38 +42,34 @@ const Generate = () => {
 
   const handleGenerate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!productImage || !modelImage) {
-      toast.error("Please upload both product and model images");
-      return;
+    if (!user) return toast("Please Login to continue", { icon: "🔐" });
+    if (!productImage || !modelImage || !aspectRatio || !name || !productName) {
+      return toast.error("Please fill all the required fields.");
     }
-
     try {
-      setIsGenerating(true);
-      const token = await getToken();
-      const formData = new FormData();
-      formData.append("name", name);
-      formData.append("productName", productName);
-      formData.append("productDescription", productDescription);
-      formData.append("aspectRatio", aspectRatio);
-      formData.append("userPrompt", userPrompt);
-      formData.append("images", modelImage); // First image: person/model
-      formData.append("images", productImage); // Second image: product
+        setIsGenerating(true);
+        const formData = new FormData();
+        formData.append("name", name);
+        formData.append("productName", productName);
+        formData.append("productDescription", productDescription);
+        formData.append("aspectRatio", aspectRatio);
+        formData.append("userPrompt", userPrompt);
+        formData.append("images", productImage);
+        formData.append("images", modelImage);
 
-      const { data } = await api.post("/api/project/create", formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
-      });
+        const token = await getToken()
 
-      toast.success("Project created! Generating image...");
-      navigate(`/result/${data.projectId}`);
-    } catch (error: any) {
-      console.error(error);
-      toast.error(error.response?.data?.message || "Failed to create project");
-    } finally {
-      setIsGenerating(false);
-    }
+        const {data} = await api.post("/api/project/create", formData, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+
+        toast.success(data.message)
+        navigate('/result/' + data.projectId)
+        
+      } catch (error: any) {
+        setIsGenerating(false);
+        toast.error(error.response?.data?.message || "Something went wrong. Please try again.");
+      }
   };
 
   return (
@@ -158,10 +161,7 @@ const Generate = () => {
             </div>
 
             <div className="mb-4 text-gray-300">
-              <label
-                htmlFor="userPrompt"
-                className="block text-sm mb-4"
-              >
+              <label htmlFor="userPrompt" className="block text-sm mb-4">
                 User Prompt <span className="text-sm">(optional)</span>
               </label>
               <textarea
@@ -173,23 +173,23 @@ const Generate = () => {
                 className="w-full bg-white/3 rounded-lg border-2 p-4 text-sm border-violet-200/10 focus:border-violet-500/50 outline-none resize-none transition-all"
               ></textarea>
             </div>
-
-
           </div>
         </div>
 
         <div className="flex justify-center mt-10">
-          <PrimaryButton disabled={isGenerating} className="px-6 py-3 disabled:opacity-70 disabled:cursor-not-allowed">
-            {isGenerating ?
-              (
-                <>
-                  <Loader2Icon className="size-5 animate-spin" /> Generating...
-                </>
-              ) : (
-                <>
-                  <Wand2Icon className="size-5" /> Generate
-                </>
-              )}
+          <PrimaryButton
+            disabled={isGenerating}
+            className="px-6 py-3 disabled:opacity-70 disabled:cursor-not-allowed"
+          >
+            {isGenerating ? (
+              <>
+                <Loader2Icon className="size-5 animate-spin" /> Generating...
+              </>
+            ) : (
+              <>
+                <Wand2Icon className="size-5" /> Generate
+              </>
+            )}
           </PrimaryButton>
         </div>
       </form>

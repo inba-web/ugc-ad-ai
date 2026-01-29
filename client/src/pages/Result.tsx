@@ -12,58 +12,32 @@ import { GhostButton, PrimaryButton } from "../components/Buttons";
 import { useAuth } from "@clerk/clerk-react";
 import api from "../config/axios";
 import toast from "react-hot-toast";
+import { dummyGenerations } from "../assets/assets";
+import { useNavigate } from "react-router-dom"; 
 
 const Result = () => {
-  const [project, setProject] = useState<Project>({} as Project);
+
+  const [project, setProjectData] = useState<Project>({} as Project);
   const [loading, setLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
 
   const { projectId } = useParams();
   const { getToken } = useAuth();
+  // const {user, isLoaded} = useAuth();
+  const navigate = useNavigate();
 
   const fetchProjectData = async () => {
     try {
-      const token = await getToken();
-      const { data } = await api.get(`/api/users/projects/${projectId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setProject(data.project);
-    } catch (error: any) {
-      console.error(error);
-      toast.error("Failed to fetch project data");
-    } finally {
-      setLoading(false);
+      
+    } catch (error) {
+      
     }
   };
 
   const handleGenerateVideo = async () => {
     setIsGenerating(true);
-    try {
-      const token = await getToken();
-      await api.post(
-        "/api/project/video",
-        { projectId },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
-      toast.success("Video generation started! This may take a few minutes.");
-      // Poll for changes or just refresh after some time
-      // For now, let's just refresh the data after a while or tell the user it's in progress
-      fetchProjectData();
-    } catch (error: any) {
-      console.error(error);
-      toast.error(error.response?.data?.message || "Failed to generate video");
-    } finally {
-      setIsGenerating(false);
-    }
   };
 
-  useEffect(() => {
-    if (projectId) {
-      fetchProjectData();
-    }
-  }, [projectId]);
 
   return loading ? (
     <div className="h-screen w-full flex items-center justify-center">
