@@ -8,7 +8,6 @@ if (!process.env.DATABASE_URL) {
     throw new Error("DATABASE_URL environment variable is not set");
 }
 
-// Configure Neon for serverless environment
 neonConfig.webSocketConstructor = ws;
 const connectionString = process.env.DATABASE_URL;
 
