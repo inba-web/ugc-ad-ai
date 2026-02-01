@@ -12,7 +12,6 @@ import { GhostButton, PrimaryButton } from "../components/Buttons";
 import { useAuth } from "@clerk/clerk-react";
 import api from "../config/axios";
 import toast from "react-hot-toast";
-import { dummyGenerations } from "../assets/assets";
 import { useNavigate } from "react-router-dom"; 
 
 const Result = () => {
@@ -22,22 +21,61 @@ const Result = () => {
   const [isGenerating, setIsGenerating] = useState(false);
 
   const { projectId } = useParams();
-  const { getToken } = useAuth();
-  // const {user, isLoaded} = useAuth();
+  const {user, isLoaded, getToken} = useAuth();
   const navigate = useNavigate();
 
   const fetchProjectData = async () => {
     try {
-      
-    } catch (error) {
-      
+      const token = await getToken()
+      const {data} = await api.get(`/api/users/projects/${projectId}`, {
+        headers: {Authorization: `Bearer ${token}`}
+      })
+      setProjectData(data.project)
+      setIsGenerating(data.project.isGenerating)
+      setLoading(false)
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || error.message);
+      console.log(error)
     }
   };
 
+
+
   const handleGenerateVideo = async () => {
     setIsGenerating(true);
+    try {
+      const token = await getToken();
+      const {data} = await api.post('/api/project/video', {projectId}, {
+        headers: {Authorization: `Bearer ${token}`}
+      })
+      setProjectData(prev => ({...prev, generatedVideo: data.videoUrl, isGenerating: false}))  
+
+      toast.success(data.message);
+      setIsGenerating(false)
+
+    } catch (error:any) {
+      toast.error(error?.response?.data?.message || error.message);
+      console.log(error)
+    }
   };
 
+  useEffect(() => {
+    if(user && !project.id){
+      fetchProjectData();
+    }else if(isLoaded && !user){
+      navigate("/")
+    }
+  },[user])
+
+  // fetch project every 10 seconds
+  useEffect(() => {
+    if(user && isGenerating){
+      const interval = setInterval(() => {
+        fetchProjectData()
+      }, 10000)
+      return () => clearInterval(interval)
+    }
+  },[user, isGenerating])
 
   return loading ? (
     <div className="h-screen w-full flex items-center justify-center">

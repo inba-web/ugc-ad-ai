@@ -6,10 +6,8 @@ import * as Sentry from "@sentry/node"
 const clerkWebhooks = async (req:Request, res:Response) => {
     try {
         const evt = await verifyWebhook(req);
-        // getting data from request
         const {data, type} = evt;
 
-        // switching cases for different events
         switch (type) {
             case "user.created": {
                 await prisma.user.create({
