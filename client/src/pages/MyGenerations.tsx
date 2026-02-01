@@ -3,12 +3,14 @@ import type { Project } from "../types";
 import { Loader2Icon } from "lucide-react";
 import ProjectCard from "../components/ProjectCard";
 import { PrimaryButton } from "../components/Buttons";
-import { Link } from "react-router-dom";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth, useUser } from "@clerk/clerk-react";
 import api from "../config/axios";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 const MyGenerations = () => {
+  const { user, isLoaded } = useUser();
+  const navigate = useNavigate();
   const [generations, setGenerations] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const { getToken } = useAuth();
@@ -16,21 +18,24 @@ const MyGenerations = () => {
   const fetchMyGenerations = async () => {
     try {
       const token = await getToken();
-      const { data } = await api.get('/api/users/projects', {
-        headers: { Authorization: `Bearer ${token}` }
+      const { data } = await api.get("/api/users/projects", {
+        headers: { Authorization: `Bearer ${token}` },
       });
       setGenerations(data.projects);
+      setLoading(false);
     } catch (error: any) {
       console.error(error);
-      toast.error("Failed to fetch generations");
-    } finally {
-      setLoading(false);
+      toast.error(error?.response?.data?.message || error.message);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchMyGenerations();
-  }, [])
+    if (user) {
+      fetchMyGenerations();
+    }else if(isLoaded && !user){
+      navigate("/")
+    }
+  }, [user]);
 
   return loading ? (
     <div className="flex items-center justify-center min-h-screen">
@@ -40,7 +45,9 @@ const MyGenerations = () => {
     <div className="min-h-screen text-white p-6 md:p-12 my-28">
       <div className="max-w-6xl mx-auto">
         <header className="mb-12">
-          <h1 className="text-3xl md:text-4xl font-semibold mb-4">My Generations</h1>
+          <h1 className="text-3xl md:text-4xl font-semibold mb-4">
+            My Generations
+          </h1>
           <p>View and manage your AI-generated content</p>
         </header>
 
@@ -48,7 +55,7 @@ const MyGenerations = () => {
         <div className="columns-1 sm:columns-2 lg:columns-3 gap-4">
           {generations.map((gen) => (
             <div>
-              <ProjectCard key={gen.id} gen={gen} />
+              <ProjectCard key={gen.id} setGenerations={setGenerations} gen={gen} />
             </div>
           ))}
         </div>
@@ -56,15 +63,17 @@ const MyGenerations = () => {
         {generations.length === 0 && (
           <div className="text-center py-20 bg-white/5 rounded-xl border border-white/10">
             <h3 className="text-xl font-medium mb-2">No generations yet</h3>
-            <p className="text-gray-400 mb-6">Start creating stunning product photos today</p>
-            <PrimaryButton onClick={() => window.location.href = '/generate'}>
+            <p className="text-gray-400 mb-6">
+              Start creating stunning product photos today
+            </p>
+            <PrimaryButton onClick={() => (window.location.href = "/generate")}>
               Create New Generation
             </PrimaryButton>
           </div>
         )}
       </div>
     </div>
-  )
-}
+  );
+};
 
 export default MyGenerations;
