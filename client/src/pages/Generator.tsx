@@ -68,7 +68,7 @@ const Generate = () => {
         
       } catch (error: any) {
         setIsGenerating(false);
-        toast.error(error.response?.data?.message || "Something went wrong. Please try again.");
+        toast.error(error.response?.data?.message || error.message);
       }
   };
 

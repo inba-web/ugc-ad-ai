@@ -38,7 +38,7 @@ export const createProject = async (req: Request, res: Response) => {
   const images: any = req.files;
 
   if (images.length < 2 || !productName) {
-    return res.status(400).json({ message: "please upload at least 2 images" });
+    return res.status(400).json({ message: "please upload 2 images" });
   }
 
   const user = await prisma.user.findUnique({
