@@ -39,8 +39,6 @@ const Result = () => {
     }
   };
 
-
-
   const handleGenerateVideo = async () => {
     setIsGenerating(true);
     try {
