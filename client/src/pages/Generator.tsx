@@ -60,7 +60,9 @@ const Generate = () => {
         const token = await getToken()
 
         const {data} = await api.post("/api/project/create", formData, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}`,
+          "Content-Type" : "multipart/form-data", 
+        },
         })
 
         toast.success(data.message)
@@ -68,11 +70,12 @@ const Generate = () => {
         
       } catch (error: any) {
         setIsGenerating(false);
-        toast.error(error.response?.data?.message || "Something went wrong. Please try again.");
+        toast.error(error.response?.data?.message || error.message);
       }
   };
 
   return (
+    
     <div className="min-h-screen text-white p-6 md:p-12 mt-28">
       <form className="max-w-4xl mx-auto mb-40" onSubmit={handleGenerate}>
         <Title

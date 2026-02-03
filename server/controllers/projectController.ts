@@ -38,7 +38,7 @@ export const createProject = async (req: Request, res: Response) => {
   const images: any = req.files;
 
   if (images.length < 2 || !productName) {
-    return res.status(400).json({ message: "please upload at least 2 images" });
+    return res.status(400).json({ message: "please upload 2 images" });
   }
 
   const user = await prisma.user.findUnique({
@@ -85,8 +85,8 @@ export const createProject = async (req: Request, res: Response) => {
 
     tempProjectId = project.id;
 
-    // const model = "gemini-3-pro-flash-image-preview";
-    const model = "gemini-3-flash-preview"
+    const model = "gemini-3-pro-flash-image-preview";
+    // const model = "gemini-3-flash-preview"
 
     const generationConfig: GenerateContentConfig = {
       maxOutputTokens: 32768,
@@ -121,20 +121,38 @@ export const createProject = async (req: Request, res: Response) => {
     const img1base64 = loadImage(images[0].path, images[0].mimetype);
     const img2base64 = loadImage(images[1].path, images[1].mimetype);
 
-    const prompt = {
-      text: `Combine the person and product into a realistic photo.
+    // const prompt = {
+    //   text: `Combine the person and product into a realistic photo.
+    //                 Make the person naturally hold or use the product.
+    //                 Match lighting, shadows, scale and perspective.
+    //                 Make the person stand in professional studio lighting.
+    //                 Output ecommerce-quality photo realistic imagery.
+    //                 ${userPrompt}
+    //         `,
+    // };
+
+    // generate the image using the ai model
+    const response = await ai.models.generateContent({
+      model,
+      contents: [
+        {
+          role: "user",
+          parts: [
+            img1base64,
+            img2base64,
+            {
+              text: `
+Combine the person and product into a realistic photo.
                     Make the person naturally hold or use the product.
                     Match lighting, shadows, scale and perspective.
                     Make the person stand in professional studio lighting.
-                    Output ecommerce-quality photo realistic imagery.
-                    ${userPrompt} 
-            `,
-    };
-
-    // generate the image using the ai model
-    const response: any = await ai.models.generateContent({
-      model,
-      contents: [img1base64, img2base64, prompt],
+                    Output ecommerce-quality photo realistic imagery
+${userPrompt || ""}
+          `,
+            },
+          ],
+        },
+      ],
       config: generationConfig,
     });
 
@@ -148,7 +166,7 @@ export const createProject = async (req: Request, res: Response) => {
     let finalBuffer: Buffer | null = null;
 
     for (const part of parts) {
-      if (part.inlineData) {
+      if (part.inlineData?.data) {
         finalBuffer = Buffer.from(part.inlineData.data, "base64");
       }
     }
@@ -174,14 +192,14 @@ export const createProject = async (req: Request, res: Response) => {
     res.json({ projectId: project.id });
   } catch (error: any) {
     if (tempProjectId) {
-      // update project status and error message
+      // update the project staut
       await prisma.project.update({
         where: { id: tempProjectId },
         data: { isGenerating: false, error: error.message || error.code },
       });
 
       if (isCreditDeducted) {
-        // add credits back
+        // add credits back if failed
         await prisma.user.update({
           where: { id: userId },
           data: { credits: { increment: 5 } },
@@ -360,7 +378,6 @@ export const deleteProject = async (req: Request, res: Response) => {
     });
 
     res.json({ message: "project deleted successfully" });
-
   } catch (error: any) {
     Sentry.captureException(error);
     res.status(500).json({ message: error.message || error.code });
