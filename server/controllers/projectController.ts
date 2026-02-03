@@ -192,14 +192,14 @@ ${userPrompt || ""}
     res.json({ projectId: project.id });
   } catch (error: any) {
     if (tempProjectId) {
-      // update project status and error message
+      // update the project staut
       await prisma.project.update({
         where: { id: tempProjectId },
         data: { isGenerating: false, error: error.message || error.code },
       });
 
       if (isCreditDeducted) {
-        // add credits back
+        // add credits back if failed
         await prisma.user.update({
           where: { id: userId },
           data: { credits: { increment: 5 } },
