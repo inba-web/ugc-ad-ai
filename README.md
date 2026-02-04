@@ -103,7 +103,7 @@ ugc-ai-ads-generator/
 ### 1️⃣ Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/ugc-ai-ads-generator.git
+git clone https://github.com/inba-web/ugc-ai-ads-generator.git
 cd ugc-ai-ads-generator
 ```
 
