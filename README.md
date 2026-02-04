@@ -87,6 +87,14 @@ ugc-ai-ads-generator/
 
 ## ⚙️ Installation & Setup
 
+> ⚠️ **Security Notice**
+> Never commit real API keys, database URLs, or secrets to GitHub. Always use environment variables and `.env.example` templates. Rotate any exposed credentials immediately.
+
+> ⚠️ **Project Status**
+> This project is not fully production-ready yet. The AI generation pipeline requires a **Google AI API key**, which is only available with **paid access or $300 free trial credits**. Without this key, AI creative generation features will not function.
+
+### 1️⃣ Clone the Repository
+
 > ⚠️ **Important Note**
 > This project is not fully production-ready yet. The AI generation pipeline requires a **Google AI API key**, which is only available with **paid access or $300 free trial credits**. Without this key, AI creative generation features will not function.
 
@@ -110,11 +118,18 @@ npm install
 Create a `.env` file and configure the following:
 
 ```env
+# Server Environment Variables
+PORT=5000
 DATABASE_URL=your_neon_postgres_url
-CLERK_PUBLISHABLE_KEY=your_clerk_key
-CLERK_SECRET_KEY=your_clerk_secret
-GOOGLE_API_KEY=your_google_api_key
-VITE_BACKEND_URL=http://localhost:5000
+CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
+CLERK_SECRET_KEY=your_clerk_secret_key
+CLERK_WEBHOOK_SIGNING_SECRET=your_clerk_webhook_secret
+CLOUDINARY_URL=your_cloudinary_url
+GOOGLE_CLOUD_API_KEY=your_google_api_key
+
+# Client Environment Variables
+VITE_BASEURL=http://localhost:5000
+VITE_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
 ```
 
 ### 4️⃣ Run Database Migrations
@@ -160,7 +175,6 @@ npm run dev
 * Open a pull request for review
 
 ---
-
 
 ## ⭐ Support
 
