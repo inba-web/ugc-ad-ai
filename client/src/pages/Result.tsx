@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { GhostButton, PrimaryButton } from "../components/Buttons";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth, useUser } from "@clerk/clerk-react";
 import api from "../config/axios";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom"; 
@@ -21,7 +21,8 @@ const Result = () => {
   const [isGenerating, setIsGenerating] = useState(false);
 
   const { projectId } = useParams();
-  const {user, isLoaded, getToken} = useAuth();
+  const { isLoaded, getToken} = useAuth();
+  const {user} = useUser();
   const navigate = useNavigate();
 
   const fetchProjectData = async () => {
